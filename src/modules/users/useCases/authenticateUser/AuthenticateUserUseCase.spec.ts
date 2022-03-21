@@ -1,3 +1,4 @@
+import { AppError } from "../../../../shared/errors/AppError";
 import { InMemoryUsersRepository } from "../../repositories/in-memory/InMemoryUsersRepository"
 import { CreateUserUseCase } from "../createUser/CreateUserUseCase"
 import { ICreateUserDTO } from "../createUser/ICreateUserDTO";
@@ -32,5 +33,28 @@ describe("Authenticate user", () => {
     )
 
     expect(token).toHaveProperty("token")
+  })
+
+  it("Shuldn't be able to authenticate an nonexistent user", async () => {
+    expect(async ()=>{
+      await authenticateUserUseCase.execute(
+        {
+          email: 'nonexistent@test.com',
+          password: 'T3stP@sw0rd'
+        }
+      )
+    }).rejects.toBeInstanceOf(AppError)
+  })
+
+  it("Shuldn't be able to authenticate an user if the password is incorrect", async () => {
+    await createUserUseCase.execute(testUser)
+    expect(async ()=>{
+      await authenticateUserUseCase.execute(
+        {
+          email: testUser.email,
+          password: 'T3stP@sw0rd'
+        }
+      )
+    }).rejects.toBeInstanceOf(AppError)
   })
 })
